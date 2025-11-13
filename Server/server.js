@@ -14,6 +14,8 @@ const saveRoutes = require("./routes/saveRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+app.set("trust proxy", 1);
+
 
 configurePassport();
 const isProduction = process.env.NODE_ENV === "production";
