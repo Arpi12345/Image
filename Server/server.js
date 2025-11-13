@@ -14,52 +14,79 @@ const saveRoutes = require("./routes/saveRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-app.set("trust proxy", 1);
 
-
+// Load passport strategies
 configurePassport();
-const isProduction = process.env.NODE_ENV === "production";
-if (isProduction) app.set("trust proxy", 1);
 
+// Body parser
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Allowed origins for BOTH local + production
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://image-n5rk.onrender.com",
+];
+
+// CORS middleware
 app.use(
   cors({
-    origin: process.env.CLIENT_URL ,
+    origin: allowedOrigins,
     credentials: true,
   })
 );
 
+// Detect environment
+const isProduction = process.env.NODE_ENV === "production";
+
+// Required for Render HTTPS
+if (isProduction) {
+  app.set("trust proxy", 1);
+}
+
+// Session middleware
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "keyboardcat",
     resave: false,
     saveUninitialized: false,
-    store: MongoStore.create({ mongoUrl: process.env.MONGO_URI, collectionName: "sessions" }),
-cookie: {
-  maxAge: 7 * 24 * 60 * 60 * 1000,
-  httpOnly: true,
-  sameSite: "none",   // required for HTTPS front-end
-  secure: true,       // required for HTTPS
-}
-,
+    store: MongoStore.create({
+      mongoUrl: process.env.MONGO_URI,
+      collectionName: "sessions",
+    }),
+
+    cookie: {
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      httpOnly: true,
+      secure: isProduction,               // true ONLY in production
+      sameSite: isProduction ? "none" : "lax",  // none in prod, lax in local
+    },
   })
 );
 
+// Passport
 app.use(passport.initialize());
 app.use(passport.session());
 
+// Debug log
 app.use((req, res, next) => {
-  console.log(`[REQ] ${req.method} ${req.path} sessionID=${req.sessionID} user=${req.user ? req.user.email || req.user.username : 'null'}`);
+  console.log(
+    `[REQ] ${req.method} ${req.path} sessionID=${req.sessionID} user=${
+      req.user ? req.user.email || req.user.username : "null"
+    }`
+  );
   next();
 });
 
+// Routes
 app.use("/auth", authRoutes);
 app.use("/api/search", searchRoutes);
 app.use("/api/save-images", saveRoutes);
+
+// Root test
 app.get("/", (req, res) => res.send("Image App Server running"));
 
+// Start server
 async function start() {
   try {
     await mongoose.connect(process.env.MONGO_URI);
@@ -70,4 +97,5 @@ async function start() {
     process.exit(1);
   }
 }
+
 start();

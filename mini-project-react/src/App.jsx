@@ -7,7 +7,7 @@ import SignupPage from "./pages/SignupPage";
 import ImageApp from "./pages/ImageApp";
 import DetailPage from "./pages/DetailPage";
 
-axios.defaults.baseURL = "http://localhost:5000";
+axios.defaults.baseURL = import.meta.env.VITE_API_URL ;
 axios.defaults.withCredentials = true;
 
 export default function App() {
@@ -16,17 +16,32 @@ export default function App() {
   const navigate = useNavigate();
 
   // fetch current user session on load
-  useEffect(() => {
+ useEffect(() => {
+  // First check (normal load)
+  axios.get("/auth/current-user")
+    .then((res) => {
+      setUser(res.data.user);
+      setLoading(false);
+    })
+    .catch(() => {
+      setUser(null);
+      setLoading(false);
+    });
+
+  // Second check (supports Google OAuth)
+  const timer = setTimeout(() => {
     axios.get("/auth/current-user")
       .then((res) => {
-        setUser(res.data.user);
-        setLoading(false);
+        if (res.data.user) {
+          setUser(res.data.user);
+        }
       })
-      .catch(() => {
-        setUser(null);
-        setLoading(false);
-      });
-  }, []);
+      .catch(() => {});
+  }, 800); // wait 0.8 sec for cookie
+
+  return () => clearTimeout(timer);
+}, []);
+
 
   const handleLogout = async () => {
     await axios.get("/auth/logout");
