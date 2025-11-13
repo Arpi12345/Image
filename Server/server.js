@@ -6,6 +6,8 @@ const passport = require("passport");
 const cors = require("cors");
 const MongoStore = require("connect-mongo");
 
+const configurePassport = require("./config/passport");
+
 const authRoutes = require("./routes/authRoutes");
 const searchRoutes = require("./routes/searchRoutes");
 const saveRoutes = require("./routes/saveRoutes");
@@ -13,59 +15,56 @@ const saveRoutes = require("./routes/saveRoutes");
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// --- TRUST PROXY (important for Render HTTPS) ---
-app.set("trust proxy", 1);
+configurePassport();
+const isProduction = process.env.NODE_ENV === "production";
+if (isProduction) app.set("trust proxy", 1);
 
-// --- Middleware ---
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// --- CORS setup ---
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    origin: process.env.CLIENT_URL ,
     credentials: true,
   })
 );
 
-// --- Sessions (store in MongoDB) ---
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "keyboardcat",
     resave: false,
     saveUninitialized: false,
-    store: MongoStore.create({
-      mongoUrl: process.env.MONGO_URI,
-      collectionName: "sessions",
-    }),
-    cookie: {
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      sameSite: "none", // required for cross-origin cookies
-      secure: true, // must be true for HTTPS (Render)
-    },
+    store: MongoStore.create({ mongoUrl: process.env.MONGO_URI, collectionName: "sessions" }),
+cookie: {
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+  httpOnly: true,
+  sameSite: "none",   // required for HTTPS front-end
+  secure: true,       // required for HTTPS
+}
+,
   })
 );
 
-// --- Passport ---
 app.use(passport.initialize());
 app.use(passport.session());
 
-// --- Routes ---
+app.use((req, res, next) => {
+  console.log(`[REQ] ${req.method} ${req.path} sessionID=${req.sessionID} user=${req.user ? req.user.email || req.user.username : 'null'}`);
+  next();
+});
+
 app.use("/auth", authRoutes);
 app.use("/api/search", searchRoutes);
 app.use("/api/save-images", saveRoutes);
+app.get("/", (req, res) => res.send("Image App Server running"));
 
-// --- Root route ---
-app.get("/", (req, res) => res.send("Image App Server running on Render 🚀"));
-
-// --- Connect MongoDB & Start Server ---
 async function start() {
   try {
     await mongoose.connect(process.env.MONGO_URI);
-    console.log("✅ MongoDB connected");
-    app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+    console.log("MongoDB connected");
+    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
   } catch (err) {
-    console.error("❌ DB connection error:", err);
+    console.error("DB connection error:", err);
     process.exit(1);
   }
 }
