@@ -16,48 +16,39 @@ const saveRoutes = require("./routes/saveRoutes");
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Load Passport strategies
+// TRUST PROXY (Render / any proxy) — required for secure cookies
+app.set("trust proxy", 1);
+
+// Load passport strategies
 configurePassport();
 
 // Body parser
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Allowed origins — LOCAL + RENDER
+// Allowed origins
 const allowedOrigins = [
   "http://localhost:5173",
   process.env.CLIENT_URL, // e.g. https://image-n5rk.onrender.com
 ].filter(Boolean);
 
-// CORS
+// CORS (dynamic but strict)
 app.use(
   cors({
     origin: function (origin, callback) {
-      // allow mobile apps, curl
+      // allow non-browser requests (curl, Postman)
       if (!origin) return callback(null, true);
-
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-
-      return callback(
-        new Error("CORS blocked — origin not allowed: " + origin),
-        false
-      );
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      return callback(new Error("CORS not allowed for origin: " + origin), false);
     },
     credentials: true,
   })
 );
 
-// Detect environment
+// Environment detection
 const isProduction = process.env.NODE_ENV === "production";
 
-// For Render HTTPS
-if (isProduction) {
-  app.set("trust proxy", 1);
-}
-
-// Sessions
+// Sessions (store in MongoDB)
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "keyboardcat",
@@ -68,9 +59,9 @@ app.use(
       collectionName: "sessions",
     }),
     cookie: {
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      maxAge: 7 * 24 * 60 * 60 * 1000,
       httpOnly: true,
-      secure: isProduction, // true ONLY in Render
+      secure: isProduction, // true on Render (HTTPS)
       sameSite: isProduction ? "none" : "lax",
     },
   })
@@ -80,13 +71,9 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Debug logs
+// Debug logging (helpful)
 app.use((req, res, next) => {
-  console.log(
-    `[REQ] ${req.method} ${req.path} | sessionID=${req.sessionID} | user=${
-      req.user ? req.user.email || req.user.username : "null"
-    }`
-  );
+  console.log(`[REQ] ${req.method} ${req.path} sessionID=${req.sessionID} user=${req.user ? req.user.email || req.user.username : 'null'}`);
   next();
 });
 
@@ -95,10 +82,9 @@ app.use("/auth", authRoutes);
 app.use("/api/search", searchRoutes);
 app.use("/api/save-images", saveRoutes);
 
-// Test root
+// Root
 app.get("/", (req, res) => res.send("Image App Server running 🚀"));
 
-// Start server + connect DB
 async function start() {
   try {
     await mongoose.connect(process.env.MONGO_URI);
@@ -109,5 +95,4 @@ async function start() {
     process.exit(1);
   }
 }
-
 start();

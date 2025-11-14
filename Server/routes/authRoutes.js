@@ -1,9 +1,11 @@
+// routes/authRoutes.js
 const express = require("express");
 const passport = require("passport");
 const User = require("../models/User");
 
 const router = express.Router();
 
+/* SIGNUP */
 router.post("/signup", async (req, res) => {
   try {
     const { email, password, username } = req.body;
@@ -17,6 +19,7 @@ router.post("/signup", async (req, res) => {
   }
 });
 
+/* LOCAL LOGIN */
 router.post("/login", (req, res, next) => {
   passport.authenticate("local", (err, user) => {
     if (err) return res.status(500).json({ error: err.message });
@@ -29,32 +32,36 @@ router.post("/login", (req, res, next) => {
   })(req, res, next);
 });
 
+/* GOOGLE OAUTH START */
 router.get("/google", passport.authenticate("google", { scope: ["profile", "email"] }));
 
+/* GOOGLE OAUTH CALLBACK */
 router.get(
   "/google/callback",
-  passport.authenticate("google", { failureRedirect: process.env.CLIENT_URL || "http://localhost:5173/login" }),
+  passport.authenticate("google", {
+    failureRedirect: process.env.CLIENT_URL || "http://localhost:5173/login",
+    session: true,
+  }),
   (req, res) => {
-    req.logIn(req.user, (err) => {
-      if (err) {
-        console.error("Google login session error:", err);
-        return res.redirect(process.env.CLIENT_URL || "http://localhost:5173/login");
-      }
-      req.session.save(() => {
-        return res.redirect(process.env.CLIENT_AFTER_LOGIN || "http://localhost:5173/");
-      });
+    // Save session before redirecting so cookie is set
+    req.session.save(() => {
+      return res.redirect(process.env.CLIENT_AFTER_LOGIN || (process.env.CLIENT_URL || "/"));
     });
   }
 );
 
+/* CURRENT USER */
 router.get("/current-user", (req, res) => {
   if (req.user) return res.json({ user: req.user });
   return res.status(401).json({ user: null });
 });
 
+/* LOGOUT */
 router.get("/logout", (req, res) => {
   req.logout(() => {
-    res.json({ message: "Logged out" });
+    req.session.destroy(() => {
+      res.json({ message: "Logged out" });
+    });
   });
 });
 

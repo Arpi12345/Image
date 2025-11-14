@@ -1,46 +1,36 @@
 // routes/saveRoutes.js
 const express = require("express");
 const SavedImage = require("../models/SavedImage");
+
 const router = express.Router();
 
-// POST /api/save-images
+// Save images
 router.post("/", async (req, res) => {
   try {
-    const { imageUrl, description, userId } = req.body;
-
-    if (!userId) {
-      console.error("❌ Missing userId");
-      return res.status(401).json({ message: "Please login first" });
-    }
-
-    if (!imageUrl) {
-      return res.status(400).json({ message: "imageUrl is required" });
-    }
-
-    const savedImage = new SavedImage({
+    if (!req.user) return res.status(401).json({ error: "Auth required" });
+    const { imageUrl, description, unsplashId } = req.body;
+    const saved = await SavedImage.create({
+      userId: String(req.user._id),
       imageUrl,
-      description: description || "",
-      userId,
+      description,
+      unsplashId,
     });
-
-    await savedImage.save();
-    console.log("✅ Image saved for user:", userId);
-
-    res.status(201).json({ message: "Image saved successfully", savedImage });
+    res.json(saved);
   } catch (err) {
-    console.error("Error saving image:", err);
-    res.status(500).json({ message: "Error saving image", error: err.message });
+    console.error("Save image error:", err);
+    res.status(500).json({ error: "Failed to save image" });
   }
 });
 
-// GET /api/save-images/:userId — get all saved images
+// Get saved images for user
 router.get("/:userId", async (req, res) => {
   try {
-    const images = await SavedImage.find({ userId: req.params.userId }).sort({ _id: -1 });
+    if (!req.user || String(req.user._id) !== String(req.params.userId)) return res.status(401).json({ error: "Auth required" });
+    const images = await SavedImage.find({ userId: String(req.params.userId) }).sort({ savedAt: -1 });
     res.json(images);
   } catch (err) {
-    console.error("Error fetching saved images:", err);
-    res.status(500).json({ message: "Error fetching images" });
+    console.error("Get saved images error:", err);
+    res.status(500).json({ error: "Failed to load saved images" });
   }
 });
 

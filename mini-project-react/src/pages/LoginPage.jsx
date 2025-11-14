@@ -1,42 +1,41 @@
+// src/pages/LoginPage.jsx
 import React, { useState } from "react";
-import axios from "axios";
-import { useNavigate, Link } from "react-router-dom";
+import axios from "../api";
+import { useNavigate } from "react-router-dom";
 
 export default function LoginPage({ setUser }) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const navigate = useNavigate();
-  const [form, setForm] = useState({ email: "", password: "" });
-
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("/auth/login", form, { withCredentials: true });
+      const res = await axios.post("/auth/login", { email, password });
       setUser(res.data.user);
       navigate("/");
     } catch (err) {
-      alert("Invalid login credentials");
+      alert(err.response?.data?.message || "Login failed");
     }
   };
 
-  const handleGoogle = () => {
-    window.location.href = "http://localhost:5000/auth/google";
+  const startGoogleLogin = () => {
+    const backend = import.meta.env.VITE_SERVER_URL || "http://localhost:5000";
+    window.location.href = `${backend}/auth/google`;
   };
 
   return (
-    <div className="auth-container">
+    <div style={{ maxWidth: 420, margin: "40px auto" }}>
       <h2>Login</h2>
       <form onSubmit={handleSubmit}>
-        <input type="email" name="email" placeholder="Email" onChange={handleChange} required />
-        <input type="password" name="password" placeholder="Password" onChange={handleChange} required />
+        <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="Email" />
+        <input value={password} onChange={e=>setPassword(e.target.value)} placeholder="Password" type="password" />
         <button type="submit">Login</button>
       </form>
 
-      <button onClick={handleGoogle} className="google-btn">🌐 Login with Google</button>
+      <hr />
 
-      <p>
-        Don't have an account? <Link to="/signup">Sign Up</Link>
-      </p>
+      <button onClick={startGoogleLogin}>Login with Google</button>
     </div>
   );
 }
