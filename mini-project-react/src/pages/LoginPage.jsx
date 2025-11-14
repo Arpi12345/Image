@@ -1,4 +1,4 @@
-// src/pages/LoginPage.jsx
+// mini-project-react/src/pages/LoginPage.jsx
 import React, { useState } from "react";
 import axios from "../api";
 import { useNavigate } from "react-router-dom";
@@ -6,36 +6,38 @@ import { useNavigate } from "react-router-dom";
 export default function LoginPage({ setUser }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
     try {
       const res = await axios.post("/auth/login", { email, password });
       setUser(res.data.user);
       navigate("/");
     } catch (err) {
-      alert(err.response?.data?.message || "Login failed");
+      setError(err.response?.data?.message || "Login failed");
     }
   };
 
-  const startGoogleLogin = () => {
-    const backend = import.meta.env.VITE_SERVER_URL || "http://localhost:5000";
-    window.location.href = `${backend}/auth/google`;
+  const handleGoogle = () => {
+    // redirect browser to backend Google route (uses axios baseURL)
+    const backendBase = (import.meta.env.VITE_API_URL || "http://localhost:5000").replace(/\/$/, "");
+    window.location.href = `${backendBase}/auth/google`;
   };
 
   return (
-    <div style={{ maxWidth: 420, margin: "40px auto" }}>
-      <h2>Login</h2>
+    <div style={{ textAlign: "center", marginTop: 60 }}>
+      <h1>Login</h1>
       <form onSubmit={handleSubmit}>
-        <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="Email" />
-        <input value={password} onChange={e=>setPassword(e.target.value)} placeholder="Password" type="password" />
+        <input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
         <button type="submit">Login</button>
       </form>
-
-      <hr />
-
-      <button onClick={startGoogleLogin}>Login with Google</button>
+      <hr style={{ width: 300, margin: "20px auto" }} />
+      <button onClick={handleGoogle}>Login with Google</button>
+      {error && <p style={{ color: "red" }}>{error}</p>}
     </div>
   );
 }

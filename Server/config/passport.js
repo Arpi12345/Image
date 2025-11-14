@@ -1,16 +1,16 @@
-// config/passport.js
+// Server/config/passport.js
 const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const User = require("../models/User");
 
 module.exports = function configurePassport() {
-  // Local strategy (passport-local-mongoose will provide authenticate)
+  // Local (passport-local-mongoose)
   passport.use(new LocalStrategy({ usernameField: "email" }, User.authenticate()));
   passport.serializeUser(User.serializeUser());
   passport.deserializeUser(User.deserializeUser());
 
-  // Google OAuth strategy
+  // Google
   passport.use(
     new GoogleStrategy(
       {
@@ -29,9 +29,9 @@ module.exports = function configurePassport() {
               photo: profile.photos?.[0]?.value,
             });
           }
-          done(null, user);
+          return done(null, user);
         } catch (err) {
-          done(err, null);
+          return done(err, null);
         }
       }
     )

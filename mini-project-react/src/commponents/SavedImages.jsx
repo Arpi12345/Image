@@ -1,29 +1,38 @@
-// src/commponents/SavedImages.jsx
+// mini-project-react/src/commponents/SavedImages.jsx
 import React, { useEffect, useState } from "react";
 import axios from "../api";
 
-export default function SavedImages({ user }) {
-  const [images, setImages] = useState([]);
+export default function SavedImages() {
+  const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (!user?._id) return;
-    axios.get(`/api/save-images/${user._id}`)
-      .then(res => setImages(res.data))
-      .catch(err => console.error("Error fetching saved images:", err))
-      .finally(()=>setLoading(false));
-  }, [user]);
+  const fetchSaved = async () => {
+    try {
+      const res = await axios.get("/api/save-images");
+      setList(res.data.list || []);
+    } catch (err) {
+      console.error("Load saved error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  if (!user) return <p>Please login</p>;
-  if (loading) return <p>Loading...</p>;
-  if (!images.length) return <p>No saved images yet.</p>;
+  useEffect(() => {
+    fetchSaved();
+  }, []);
+
+  if (loading) return <p>Loading saved images...</p>;
+  if (!list.length) return <p>No saved images yet.</p>;
 
   return (
-    <div style={{ padding: 20 }}>
-      <h2>Your Saved Images</h2>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 12 }}>
-        {images.map(img => (
-          <div key={img._id}><img src={img.imageUrl} alt={img.description} style={{ width: "100%", borderRadius: 8 }} /></div>
+    <div>
+      <h3>Saved Images</h3>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, 200px)", gap: 12 }}>
+        {list.map((s) => (
+          <div key={s._id} style={{ border: "1px solid #ddd", padding: 8 }}>
+            <img src={s.url} alt={s.title || "saved"} style={{ width: "100%", height: 120, objectFit: "cover" }} />
+            <p style={{ margin: "8px 0 0", fontSize: 14 }}>{s.title}</p>
+          </div>
         ))}
       </div>
     </div>

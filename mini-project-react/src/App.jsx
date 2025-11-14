@@ -1,7 +1,7 @@
-// src/App.jsx
+// mini-project-react/src/App.jsx
 import React, { useEffect, useState } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
-import axios from "./api"; // uses axios defaults
+import axios from "./api";
 
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
@@ -17,18 +17,19 @@ export default function App() {
     axios.get("/auth/current-user")
       .then((res) => {
         setUser(res.data.user);
-        setLoading(false);
       })
       .catch(() => {
         setUser(null);
-        setLoading(false);
-      });
+      })
+      .finally(() => setLoading(false));
 
+    // extra check for OAuth flow (cookie might arrive shortly)
     const timer = setTimeout(() => {
       axios.get("/auth/current-user")
         .then((res) => {
           if (res.data.user) setUser(res.data.user);
-        }).catch(()=>{});
+        })
+        .catch(()=>{});
     }, 800);
 
     return () => clearTimeout(timer);

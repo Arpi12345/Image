@@ -1,11 +1,11 @@
-// routes/authRoutes.js
+// Server/routes/authRoutes.js
 const express = require("express");
 const passport = require("passport");
 const User = require("../models/User");
 
 const router = express.Router();
 
-/* SIGNUP */
+// signup
 router.post("/signup", async (req, res) => {
   try {
     const { email, password, username } = req.body;
@@ -19,7 +19,7 @@ router.post("/signup", async (req, res) => {
   }
 });
 
-/* LOCAL LOGIN */
+// login
 router.post("/login", (req, res, next) => {
   passport.authenticate("local", (err, user) => {
     if (err) return res.status(500).json({ error: err.message });
@@ -32,31 +32,28 @@ router.post("/login", (req, res, next) => {
   })(req, res, next);
 });
 
-/* GOOGLE OAUTH START */
+// Google OAuth start
 router.get("/google", passport.authenticate("google", { scope: ["profile", "email"] }));
 
-/* GOOGLE OAUTH CALLBACK */
+// Google callback
 router.get(
   "/google/callback",
-  passport.authenticate("google", {
-    failureRedirect: process.env.CLIENT_URL || "http://localhost:5173/login",
-    session: true,
-  }),
+  passport.authenticate("google", { failureRedirect: process.env.CLIENT_URL || "http://localhost:5173/login" }),
   (req, res) => {
-    // Save session before redirecting so cookie is set
+    // ensure session saved then redirect to client
     req.session.save(() => {
-      return res.redirect(process.env.CLIENT_AFTER_LOGIN || (process.env.CLIENT_URL || "/"));
+      res.redirect(process.env.CLIENT_AFTER_LOGIN || (process.env.CLIENT_URL || "http://localhost:5173") );
     });
   }
 );
 
-/* CURRENT USER */
+// get current user
 router.get("/current-user", (req, res) => {
   if (req.user) return res.json({ user: req.user });
   return res.status(401).json({ user: null });
 });
 
-/* LOGOUT */
+// logout
 router.get("/logout", (req, res) => {
   req.logout(() => {
     req.session.destroy(() => {
