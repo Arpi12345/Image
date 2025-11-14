@@ -1,3 +1,4 @@
+// server.js
 require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
@@ -15,36 +16,34 @@ const saveRoutes = require("./routes/saveRoutes");
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Load passport strategies
+// Load Passport strategies
 configurePassport();
 
 // Body parser
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Allowed origins for BOTH local + production
+// Allowed origins — LOCAL + RENDER
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://image-n5rk.onrender.com",
-];
+  process.env.CLIENT_URL, // e.g. https://image-n5rk.onrender.com
+].filter(Boolean);
 
-// CORS middleware
+// CORS
 app.use(
   cors({
     origin: function (origin, callback) {
-      const allowedOrigins = [
-        "http://localhost:5173",
-        "https://image-n5rk.onrender.com",
-      ];
-
-      // allow requests with no origin (curl, mobile apps)
+      // allow mobile apps, curl
       if (!origin) return callback(null, true);
 
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
 
-      return callback(new Error("CORS not allowed for this origin: " + origin), false);
+      return callback(
+        new Error("CORS blocked — origin not allowed: " + origin),
+        false
+      );
     },
     credentials: true,
   })
@@ -53,12 +52,12 @@ app.use(
 // Detect environment
 const isProduction = process.env.NODE_ENV === "production";
 
-// Required for Render HTTPS
+// For Render HTTPS
 if (isProduction) {
   app.set("trust proxy", 1);
 }
 
-// Session middleware
+// Sessions
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "keyboardcat",
@@ -68,12 +67,11 @@ app.use(
       mongoUrl: process.env.MONGO_URI,
       collectionName: "sessions",
     }),
-
     cookie: {
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       httpOnly: true,
-      secure: isProduction,               // true ONLY in production
-      sameSite: isProduction ? "none" : "lax",  // none in prod, lax in local
+      secure: isProduction, // true ONLY in Render
+      sameSite: isProduction ? "none" : "lax",
     },
   })
 );
@@ -82,10 +80,10 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Debug log
+// Debug logs
 app.use((req, res, next) => {
   console.log(
-    `[REQ] ${req.method} ${req.path} sessionID=${req.sessionID} user=${
+    `[REQ] ${req.method} ${req.path} | sessionID=${req.sessionID} | user=${
       req.user ? req.user.email || req.user.username : "null"
     }`
   );
@@ -97,10 +95,10 @@ app.use("/auth", authRoutes);
 app.use("/api/search", searchRoutes);
 app.use("/api/save-images", saveRoutes);
 
-// Root test
-app.get("/", (req, res) => res.send("Image App Server running"));
+// Test root
+app.get("/", (req, res) => res.send("Image App Server running 🚀"));
 
-// Start server
+// Start server + connect DB
 async function start() {
   try {
     await mongoose.connect(process.env.MONGO_URI);
