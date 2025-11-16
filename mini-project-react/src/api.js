@@ -1,11 +1,10 @@
-// mini-project-react/src/api.js
 import axios from "axios";
 
-const base = import.meta.env.VITE_API_URL || "http://localhost:5000";
-
-const instance = axios.create({
-  baseURL: base,
+const api = axios.create({
+  baseURL: import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL_PROD
+    : import.meta.env.VITE_API_URL_DEV,
   withCredentials: true,
 });
 
-export default instance;
+export default api;

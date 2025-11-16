@@ -1,0 +1,38 @@
+.topbanner {
+  width: 100%;
+  margin-top: 10px;
+  padding: 0px 35px;
+}
+
+.popular-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.popular-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.tag-btn {
+  padding: 6px 16px;
+  font-size: 14px;
+  border: none;
+  border-radius: 22px;
+  background-color: #ffb6c9;
+  color: #333;
+  cursor: pointer;
+  transition: 0.25s ease;
+}
+
+.tag-btn:hover {
+  background-color: #ff8fb0;
+}
+
+.loading {
+  color: #777;
+  font-size: 14px;
+}

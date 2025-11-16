@@ -1,40 +1,41 @@
-// mini-project-react/src/commponents/SavedImages.jsx
 import React, { useEffect, useState } from "react";
-import axios from "../api";
+import api from "../api";
 
-export default function SavedImages() {
-  const [list, setList] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  const fetchSaved = async () => {
-    try {
-      const res = await axios.get("/api/save-images");
-      setList(res.data.list || []);
-    } catch (err) {
-      console.error("Load saved error:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+export default function SavedImages({ user }) {
+  const [images, setImages] = useState([]);
 
   useEffect(() => {
-    fetchSaved();
-  }, []);
+    if (!user?._id) return;
 
-  if (loading) return <p>Loading saved images...</p>;
-  if (!list.length) return <p>No saved images yet.</p>;
+    api
+      .get(`/api/save-images/${user._id}`)   // ✅ NO LOCALHOST
+      .then(res => setImages(res.data))
+      .catch(err => console.error("Error fetching saved images:", err));
+  }, [user]);
 
   return (
-    <div>
-      <h3>Saved Images</h3>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, 200px)", gap: 12 }}>
-        {list.map((s) => (
-          <div key={s._id} style={{ border: "1px solid #ddd", padding: 8 }}>
-            <img src={s.url} alt={s.title || "saved"} style={{ width: "100%", height: 120, objectFit: "cover" }} />
-            <p style={{ margin: "8px 0 0", fontSize: 14 }}>{s.title}</p>
-          </div>
-        ))}
-      </div>
+    <div style={{ padding: 20 }}>
+      <h2>Your saved images</h2>
+      {images.length === 0 ? (
+        <p>No saved images yet</p>
+      ) : (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+            gap: 12,
+          }}
+        >
+          {images.map((img) => (
+            <img
+              key={img._id}
+              src={img.imageUrl}
+              alt={img.description}
+              style={{ width: "100%", borderRadius: 8 }}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

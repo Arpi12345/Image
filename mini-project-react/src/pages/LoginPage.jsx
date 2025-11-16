@@ -1,43 +1,75 @@
-// mini-project-react/src/pages/LoginPage.jsx
 import React, { useState } from "react";
-import axios from "../api";
-import { useNavigate } from "react-router-dom";
+import api from "../api";
+import { useNavigate, Link } from "react-router-dom";
+import "../styles/SearchBox.css"; 
 
 export default function LoginPage({ setUser }) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
   const navigate = useNavigate();
+  const [form, setForm] = useState({ email: "", password: "" });
+
+  const handleChange = (e) =>
+    setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
     try {
-      const res = await axios.post("/auth/login", { email, password });
+      const res = await api.post("/auth/login", form);
       setUser(res.data.user);
       navigate("/");
     } catch (err) {
-      setError(err.response?.data?.message || "Login failed");
+      alert("Invalid login credentials");
     }
   };
 
   const handleGoogle = () => {
-    // redirect browser to backend Google route (uses axios baseURL)
-    const backendBase = (import.meta.env.VITE_API_URL || "http://localhost:5000").replace(/\/$/, "");
-    window.location.href = `${backendBase}/auth/google`;
+    const backend =
+      import.meta.env.MODE === "production"
+        ? import.meta.env.VITE_API_URL_PROD
+        : import.meta.env.VITE_API_URL_DEV;
+
+    window.location.href = `${backend}/auth/google`;
   };
 
   return (
-    <div style={{ textAlign: "center", marginTop: 60 }}>
-      <h1>Login</h1>
-      <form onSubmit={handleSubmit}>
-        <input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
-        <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
-        <button type="submit">Login</button>
-      </form>
-      <hr style={{ width: 300, margin: "20px auto" }} />
-      <button onClick={handleGoogle}>Login with Google</button>
-      {error && <p style={{ color: "red" }}>{error}</p>}
+     <div className="auth-page">
+    <div className="auth-box">
+      <h2 className="auth-title">Login</h2>
+
+        <form onSubmit={handleSubmit} className="auth-form">
+          <input
+            type="email"
+            name="email"
+            placeholder="Email"
+            className="auth-input"
+            onChange={handleChange}
+            required
+          />
+
+          <input
+            type="password"
+            name="password"
+            placeholder="Password"
+            className="auth-input"
+            onChange={handleChange}
+            required
+          />
+
+          <button type="submit" className="auth-btn">
+            Login
+          </button>
+        </form>
+
+        <button onClick={handleGoogle} className="google-btn">
+          🌐 Login with Google
+        </button>
+
+        <p className="auth-switch">
+          Don't have an account?{" "}
+          <Link to="/signup" className="auth-link">
+            Sign Up
+          </Link>
+        </p>
+      </div>
     </div>
   );
 }

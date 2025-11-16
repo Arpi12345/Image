@@ -1,43 +1,37 @@
 import React, { useState } from "react";
-import axios from "axios";
-import "../styles/SearchBox.css";
+import api from "../api";   // using your api.js
 
-export default function SearchBox({ setImages }) {
+export default function SearchBox({ setImages, user }) {
   const [term, setTerm] = useState("");
 
-  //  Handle Search
-  const handleSearch = async (e) => {
-    e.preventDefault();
+ const handleSearch = async (e) => {
+  e.preventDefault();
 
-    if (!term.trim()) {
-      alert("Please enter a search term!");
-      return;
-    }
+  if (!term.trim()) return;
 
-    try {
-      const res = await axios.post("/api/search", { term });
-      setImages(res.data.results || []);
-      console.log(" Images fetched:", res.data.results?.length);
-    } catch (err) {
-      console.error(" Error fetching images:", err);
-      alert("Error fetching images. Please try again!");
+  try {
+    const res = await api.post("/api/search", { term });
+
+    if (res.data?.results) {
+      setImages(res.data.results);
+      setTerm(""); // 🔹 clear the input after search
     }
-  };
+  } catch (err) {
+    console.error("Search error:", err);
+    alert("Error fetching search results");
+  }
+};
+
 
   return (
-    <div className="search-container">
-      <form onSubmit={handleSearch} className="search-form">
-        <input
-          type="text"
-          placeholder="Search beautiful images..."
-          value={term}
-          onChange={(e) => setTerm(e.target.value)}
-          className="search-input"
-        />
-        <button type="submit" className="search-button">
-          Search
-        </button>
-      </form>
-    </div>
+    <form onSubmit={handleSearch} className="search-form">
+      <input
+        type="text"
+        placeholder="Search images..."
+        value={term}
+        onChange={(e) => setTerm(e.target.value)}
+      />
+      <button type="submit">Search</button>
+    </form>
   );
 }

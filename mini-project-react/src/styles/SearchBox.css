@@ -1,98 +1,246 @@
-/* 🌸 Top Banner */
-.top-banner {
-  background: #fff5f5;
-  border-radius: 10px;
-  padding: 15px 20px;
-  margin: 15px auto;
-  width: 85%;
-  text-align: left;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-}
-
-.top-banner h3 {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 10px;
-}
-
-/* 💖 Tag Bubbles */
-.top-terms {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.clickable-term {
-  background-color: #ffb6c1;
-  color: #fff;
-  padding: 6px 14px;
-  border-radius: 25px;
-  font-size: 14px;
-  font-weight: 500;
-  transition: 0.25s ease;
-  cursor: pointer;
-  box-shadow: 0 3px 6px rgba(255, 182, 193, 0.4);
-}
-
-.clickable-term:hover {
-  background-color: #ff8fab;
-  transform: scale(1.08);
-  box-shadow: 0 5px 10px rgba(255, 143, 171, 0.5);
-}
-
-/* Responsive Adjustments */
-@media (max-width: 768px) {
-  .top-banner {
-    width: 95%;
-    text-align: center;
-  }
-  .top-terms {
-    justify-content: center;
-  }
-}
-.search-container {
-  text-align: center;
-  margin-top: 2rem;
-  font-family: "Poppins", sans-serif;
-}
-
 .search-form {
   display: flex;
   justify-content: center;
+  margin: 25px 0;
+}
+
+.search-form input {
+  width: 350px;
+  padding: 10px 14px;
+  border-radius: 25px;
+  border: 1px solid #ccc;
+  margin-right: 10px;
+  font-size: 16px;
+}
+
+.search-form button {
+  padding: 10px 18px;
+  border-radius: 25px;
+  background-color: #ff6f91;
+  color: white;
+  border: none;
+  font-size: 15px;
+}
+/* LOGIN + SIGNUP inputs use same capsule style */
+.auth-input {
+  width: 350px;
+  padding: 12px 20px;
+  border-radius: 50px;
+  border: 1px solid #eee;
+  outline: none;
+  font-size: 16px;
+  margin: 8px 0;
+}
+
+.auth-btn {
+  width: 200px;
+  padding: 12px 20px;
+  border-radius: 50px;
+  background-color: #4a90e2; /* your original login blue */
+  color: white;
+  border: none;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.auth-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 50px;
+  text-align: center;
+  flex-direction: column;
   align-items: center;
-  gap: 1rem;
+}
+
+/* Google login button matches capsule */
+.google-btn {
+  width: 220px;
+  padding: 12px 20px;
+  border-radius: 50px;
+  background-color: #ffffff;
+  border: 1px solid #ddd;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+
+
+/* POPULAR SEARCHES */
+.popular-wrapper {
+  width: 100%;
+  margin-top: 5px;
+  padding: 15px 20px;
+}
+
+.popular-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.popular-tags {
+  display: flex;
+  gap: 10px;
+  padding: 5px 0;
   flex-wrap: wrap;
-  margin-bottom: 2rem;
+}
+
+.tag-pill {
+  background: #ffb3c6;
+  padding: 6px 14px;
+  border-radius: 20px;
+  color: #333;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* SEARCH BAR */
+.search-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-top: 20px;
 }
 
 .search-input {
-  width: 320px;
-  border-radius: 18px;
-  padding: 0.8rem 1rem;
+  width: 360px;
+  height: 40px;
+  border-radius: 22px;
   border: 1px solid #ddd;
-  font-size: 1rem;
+  padding: 0 15px;
   outline: none;
-  transition: 0.2s;
 }
 
-.search-input:focus {
-  border-color: #ff6f91;
-  box-shadow: 0 0 5px rgba(255, 111, 145, 0.5);
-}
-
-.search-button {
-  background-color: #ff6f91;
+.search-btn {
+  background: #ff6f91;
+  color: #fff;
   border: none;
-  color: white;
-  padding: 0.7rem 1.5rem;
-  border-radius: 12px;
+  padding: 10px 22px;
+  border-radius: 22px;
   cursor: pointer;
-  font-size: 1rem;
-  transition: 0.3s;
+  font-size: 15px;
+}
+/* Container for Popular Searches */
+.top-container {
+  width: 90%;
+  max-width: 1050px;
+  margin: 20px auto;
+  padding: 20px;
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
 }
 
-.search-button:hover {
-  background-color: #ff4f7a;
-  transform: scale(1.05);
+/* Title */
+.popular-title {
+  font-size: 17px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+/* Tags in pills */
+.popular-tags {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.tag-pill {
+  background: #ffb3c6;
+  padding: 7px 14px;
+  border-radius: 20px;
+  color: #333;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.25s ease; /* smooth hover */
+}
+
+.tag-pill:hover {
+  background: #ff8fb0;   /* darker pink */
+  transform: translateY(-3px); /* small lift effect */
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+/* ================================
+   LOGIN / SIGNUP BOX CONTAINER
+   ================================ */
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #f7f7f7;
+}
+
+/* White card box */
+.auth-box {
+  width: 500px;
+  padding: 35px 30px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 5px 18px rgba(0,0,0,0.08);
+  text-align: center;
+}
+
+.auth-title {
+  font-size: 26px;
+  margin-bottom: 20px;
+  width: 80%;
+}
+
+/* Reset styles so SearchBox doesn't affect login form */
+.auth-box input,
+.auth-box button {
+  all: unset;
+  display: block;
+}
+
+/* Re-apply capsule style */
+.auth-box .auth-input {
+  width: 70%;
+  padding: 14px 18px;
+  border-radius: 30px;
+  border: 1px solid #ddd;
+  font-size: 16px;
+  margin: 10px 0;
+  background: white;
+  outline: none;
+}
+
+/* Blue login button */
+.auth-box .auth-btn {
+  width: 45%;
+  padding: 12px;
+  border-radius: 30px;
+  background-color: #4a90e2;
+  color: white;
+  text-align: center;
+  font-size: 18px;
+  cursor: pointer;
+  margin-top: 10px;
+  margin-left: 45px;
+}
+
+/* Google Button */
+.auth-box .google-btn {
+  width: 55%;
+  padding: 11px;
+  border-radius: 30px;
+  background: #ffffff;
+  border: 1px solid #ddd;
+  cursor: pointer;
+  margin-top: 12px;
+   margin-left: 30px;
+}
+
+/* Bottom link text */
+.auth-switch {
+  margin-top: 15px;
+  font-size: 14px;
+}
+
+.auth-link {
+  color: #ff6f91;
+  font-weight: 600;
+  text-decoration: none;
 }

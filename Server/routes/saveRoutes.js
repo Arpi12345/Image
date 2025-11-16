@@ -1,32 +1,46 @@
-// Server/routes/saveRoutes.js
+// routes/saveRoutes.js
 const express = require("express");
-const SavedImage = require("../models/SavedImage"); // assume this model exists
+const SavedImage = require("../models/SavedImage");
 const router = express.Router();
 
-// require auth middleware (simple)
-function ensureAuth(req, res, next) {
-  if (req.isAuthenticated && req.isAuthenticated()) return next();
-  return res.status(401).json({ message: "Unauthorized" });
-}
-
-// save image
-router.post("/", ensureAuth, async (req, res) => {
+// POST /api/save-images
+router.post("/", async (req, res) => {
   try {
-    const { url, title } = req.body;
-    const saved = await SavedImage.create({ userId: req.user._id, url, title });
-    res.json({ saved });
+    const { imageUrl, description, userId } = req.body;
+
+    if (!userId) {
+      console.error("❌ Missing userId");
+      return res.status(401).json({ message: "Please login first" });
+    }
+
+    if (!imageUrl) {
+      return res.status(400).json({ message: "imageUrl is required" });
+    }
+
+    const savedImage = new SavedImage({
+      imageUrl,
+      description: description || "",
+      userId,
+    });
+
+    await savedImage.save();
+    console.log("✅ Image saved for user:", userId);
+
+    res.status(201).json({ message: "Image saved successfully", savedImage });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Error saving image:", err);
+    res.status(500).json({ message: "Error saving image", error: err.message });
   }
 });
 
-// list saved by user
-router.get("/", ensureAuth, async (req, res) => {
+// GET /api/save-images/:userId — get all saved images
+router.get("/:userId", async (req, res) => {
   try {
-    const list = await SavedImage.find({ userId: req.user._id }).sort({ createdAt: -1 });
-    res.json({ list });
+    const images = await SavedImage.find({ userId: req.params.userId }).sort({ _id: -1 });
+    res.json(images);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Error fetching saved images:", err);
+    res.status(500).json({ message: "Error fetching images" });
   }
 });
 

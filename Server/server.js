@@ -1,4 +1,4 @@
-// Server/server.js
+// server.js
 require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
@@ -7,45 +7,42 @@ const passport = require("passport");
 const cors = require("cors");
 const MongoStore = require("connect-mongo");
 
-const configurePassport = require("./config/passport");
-
 const authRoutes = require("./routes/authRoutes");
 const searchRoutes = require("./routes/searchRoutes");
 const saveRoutes = require("./routes/saveRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-
-// initialize passport strategies
-configurePassport();
+const isProd = process.env.NODE_ENV === "production";
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Allowed origins - local dev and your deployed frontend
+/* -----------------------------------------------------
+   CORS – allow Localhost AND Render Frontend
+----------------------------------------------------- */
 const allowedOrigins = [
   process.env.CLIENT_URL || "http://localhost:5173",
-  process.env.CLIENT_AFTER_LOGIN ? new URL(process.env.CLIENT_AFTER_LOGIN).origin : "https://image-n5rk.onrender.com"
-];
+  process.env.CLIENT_URL_PROD || null
+].filter(Boolean);
 
-// CORS - dynamic origin check
 app.use(
   cors({
     origin: function (origin, callback) {
-      // allow refreshes/requests from non-browser tools (no origin)
       if (!origin) return callback(null, true);
       if (allowedOrigins.includes(origin)) return callback(null, true);
-      return callback(new Error("CORS not allowed for origin: " + origin), false);
+      return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
   })
 );
 
-// set trust proxy if running on https hosting (Render)
-const isProduction = process.env.NODE_ENV === "production";
-if (isProduction) app.set("trust proxy", 1);
+// Needed for secure cookies on Render
+app.set("trust proxy", 1);
 
-// session configuration
+/* -----------------------------------------------------
+   SESSION – local + Render compatible
+----------------------------------------------------- */
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "keyboardcat",
@@ -58,38 +55,43 @@ app.use(
     cookie: {
       maxAge: 7 * 24 * 60 * 60 * 1000,
       httpOnly: true,
-      secure: isProduction, // true on HTTPS (Render), false on localhost
-      sameSite: isProduction ? "none" : "lax", // none for cross-site cookies in prod
+      secure: isProd,
+      sameSite: isProd ? "none" : "lax",
     },
   })
 );
 
-// initialize passport after session
+/* -----------------------------------------------------
+   PASSPORT – must be AFTER session
+----------------------------------------------------- */
+const configurePassport = require("./config/passport");
+configurePassport();
+
 app.use(passport.initialize());
 app.use(passport.session());
 
-// helpful debug logging
-app.use((req, res, next) => {
-  console.log(
-    `[REQ] ${req.method} ${req.path} sessionID=${req.sessionID} user=${req.user ? (req.user.email || req.user.username) : "null"} origin=${req.headers.origin || "N/A"}`
-  );
-  next();
-});
-
-// API routes
+/* -----------------------------------------------------
+   ROUTES
+----------------------------------------------------- */
 app.use("/auth", authRoutes);
 app.use("/api/search", searchRoutes);
 app.use("/api/save-images", saveRoutes);
 
-// root
+/* -----------------------------------------------------
+   ROOT CHECK
+----------------------------------------------------- */
 app.get("/", (req, res) => res.send("Image App Server running"));
 
-// start
+/* -----------------------------------------------------
+   START SERVER
+----------------------------------------------------- */
 async function start() {
   try {
-    await mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+    await mongoose.connect(process.env.MONGO_URI);
     console.log("MongoDB connected");
-    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+    app.listen(PORT, () =>
+      console.log(`Server listening on port ${PORT}`)
+    );
   } catch (err) {
     console.error("DB connection error:", err);
     process.exit(1);
