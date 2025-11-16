@@ -4,7 +4,10 @@ const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const User = require("../models/User");
 
 function configurePassport() {
-  // Local strategy - email & password
+
+  /* -----------------------------------------------
+     LOCAL STRATEGY
+  ------------------------------------------------ */
   passport.use(
     new LocalStrategy(
       { usernameField: "email" },
@@ -15,13 +18,16 @@ function configurePassport() {
   passport.serializeUser(User.serializeUser());
   passport.deserializeUser(User.deserializeUser());
 
-  // Google OAuth strategy
+  /* -----------------------------------------------
+     GOOGLE STRATEGY (RENDER FIXED)
+  ------------------------------------------------ */
   passport.use(
     new GoogleStrategy(
       {
         clientID: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
         callbackURL: process.env.GOOGLE_CALLBACK_URL,
+        proxy: true,                     // ⭐ REQUIRED FOR RENDER
       },
       async (accessToken, refreshToken, profile, done) => {
         try {

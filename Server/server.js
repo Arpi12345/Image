@@ -21,17 +21,19 @@ app.use(express.urlencoded({ extended: true }));
 /* -----------------------------------------------------
    CORS – allow Localhost AND Render Frontend
 ----------------------------------------------------- */
-const allowedOrigins = [
-  process.env.CLIENT_URL || "http://localhost:5173",
-  process.env.CLIENT_URL_PROD || null
-].filter(Boolean);
+const whitelist = [
+  "http://localhost:5173",
+  "https://image-n5rk.onrender.com",
+];
 
 app.use(
   cors({
     origin: function (origin, callback) {
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) return callback(null, true);
-      return callback(new Error("Not allowed by CORS"));
+      if (!origin) return callback(null, true); // allow server-to-server calls
+      if (whitelist.includes(origin) || origin.startsWith("https://image-n5rk.onrender.com")) {
+        return callback(null, true);
+      }
+      return callback(new Error("CORS blocked: " + origin));
     },
     credentials: true,
   })
